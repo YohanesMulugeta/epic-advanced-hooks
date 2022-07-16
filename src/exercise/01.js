@@ -8,7 +8,7 @@ function countReducer(previousValue, action) {
     case 'INCREMENT':
       return {count: previousValue.count + action.step}
     default:
-      return previousValue
+      throw new Error(`Unsuppoorted action type ${action.type}`)
   }
 }
 
