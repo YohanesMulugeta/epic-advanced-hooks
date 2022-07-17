@@ -55,15 +55,18 @@ function useAsync(intialValue) {
 
   const dispatch = useSafeDispatch(unsafeDispatch)
 
-  const run = React.useCallback(promise => {
-    // ------------------------------------------------- because in every search we want to display the fall back screen
-    dispatch({type: 'pending'})
+  const run = React.useCallback(
+    promise => {
+      // ------------------------------------------------- because in every search we want to display the fall back screen
+      dispatch({type: 'pending'})
 
-    promise.then(
-      data => dispatch({type: 'resolved', data}),
-      error => dispatch({type: 'rejected', error}),
-    )
-  }, [])
+      promise.then(
+        data => dispatch({type: 'resolved', data}),
+        error => dispatch({type: 'rejected', error}),
+      )
+    },
+    [dispatch],
+  )
 
   return {run, ...state}
 }
