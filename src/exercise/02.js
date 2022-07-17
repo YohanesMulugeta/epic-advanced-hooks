@@ -10,8 +10,8 @@ import {
   PokemonErrorBoundary,
 } from '../pokemon'
 
-function useAsync(promise, intialValue) {
-  function pokemonInfoReducer(state, action) {
+function useAsync(intialValue) {
+  function pokemonInfoReducer(previousState, action) {
     switch (action.type) {
       case 'pending': {
         return {status: 'pending', data: null, error: null}
@@ -30,31 +30,42 @@ function useAsync(promise, intialValue) {
 
   const [state, dispatch] = React.useReducer(pokemonInfoReducer, intialValue)
 
-  React.useEffect(() => {
-    if (!promise()) return
+  const run = React.useCallback(promise => {
+    // ------------------------------------------------- because in every search we want to display the fall back screen
+    dispatch({type: 'pending'})
 
-    promise().then(
+    promise.then(
       data => dispatch({type: 'resolved', data}),
       error => dispatch({type: 'rejected', error}),
     )
-  }, [promise])
+  }, [])
 
-  return state
+  return {run, ...state}
 }
 
 function PokemonInfo({pokemonName}) {
-  const promise = React.useCallback(
-    () => (pokemonName ? fetchPokemon(pokemonName) : undefined),
-    [pokemonName],
-  )
+  // const promise = () => (pokemonName ? fetchPokemon(pokemonName) : undefined)
 
-  const state = useAsync(promise, {
+  const {
+    data: pokemon,
+    status,
+    error,
+    run,
+  } = useAsync({
     status: pokemonName ? 'pending' : 'idle',
     data: null,
     error: null,
   })
 
-  const {data, status, error} = state
+  React.useEffect(() => {
+    if (!pokemonName) return
+
+    const pokemonPromise = fetchPokemon(pokemonName)
+
+    run(pokemonPromise)
+  }, [run, pokemonName])
+
+  // const {data, status, error} = state
 
   switch (status) {
     case 'idle':
@@ -64,7 +75,7 @@ function PokemonInfo({pokemonName}) {
     case 'rejected':
       throw error
     case 'resolved':
-      return <PokemonDataView pokemon={data} />
+      return <PokemonDataView pokemon={pokemon} />
     default:
       throw new Error('This should be impossible')
   }
