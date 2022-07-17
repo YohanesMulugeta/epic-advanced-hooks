@@ -10,6 +10,25 @@ import {
   PokemonErrorBoundary,
 } from '../pokemon'
 
+function useSafeDispatch(unsafeDispatch) {
+  const unmountedRef = React.useRef(false)
+
+  React.useLayoutEffect(() => {
+    unmountedRef.current = true
+
+    return () => {
+      unmountedRef.current = false
+    }
+  }, [])
+
+  return React.useCallback(
+    (...args) => {
+      if (unmountedRef.current) unsafeDispatch(...args)
+    },
+    [unsafeDispatch],
+  )
+}
+
 function useAsync(intialValue) {
   function pokemonInfoReducer(previousState, action) {
     switch (action.type) {
@@ -28,7 +47,13 @@ function useAsync(intialValue) {
     }
   }
 
-  const [state, dispatch] = React.useReducer(pokemonInfoReducer, intialValue)
+  // ------------------------------------------------------------------------ the dispatch returned from useReducer is a memkoized never changes through
+  const [state, unsafeDispatch] = React.useReducer(
+    pokemonInfoReducer,
+    intialValue,
+  )
+
+  const dispatch = useSafeDispatch(unsafeDispatch)
 
   const run = React.useCallback(promise => {
     // ------------------------------------------------- because in every search we want to display the fall back screen
