@@ -35,6 +35,7 @@ function PokemonCacheProvider(props) {
 }
 
 function PokemonInfo({pokemonName}) {
+  // ----------------------------------------------------------------------- when we call use context we get the value provided by the context.provider
   const [cache, dispatch] = React.useContext(PokemonCacheContext)
 
   const {data: pokemon, status, error, run, setData} = useAsync()
@@ -52,7 +53,7 @@ function PokemonInfo({pokemonName}) {
         }),
       )
     }
-  }, [cache, pokemonName, run, setData])
+  }, [cache, pokemonName, run, setData, dispatch])
 
   if (status === 'idle') {
     return 'Submit a pokemon'
